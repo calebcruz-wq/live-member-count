@@ -2,35 +2,110 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>Shadow Chess Hub — Live Member Stats</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
-body {
-    background: #12001f;
-    color: #d7a6ff;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
-    margin: 0;
-}
+    body {
+        background: #12001f;
+        color: #d7a6ff;
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+        padding: 18px;
+        margin: 0;
+        font-size: 17px;
+    }
+
+    #stats {
+        padding: 6px 0 12px 0;
+        font-weight: 600;
+        text-shadow: 0 0 8px #b57dff;
+    }
+
+    .bar-container {
+        width: 100%;
+        height: 12px;
+        background: rgba(139,77,255,0.25);
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(139,77,255,0.35);
+        margin-top: 8px;
+    }
+
+    .bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #b98cff, #8b4dff);
+        width: 0%;
+        border-radius: 10px;
+        transition: width 1.2s ease;
+        box-shadow: 0 0 10px rgba(185,140,255,0.6);
+    }
+
+    #goalText {
+        margin-top: 6px;
+        font-size: 14px;
+        opacity: 0.85;
+    }
 </style>
 </head>
+
 <body>
 
-<div id="stats">Loading...</div>
+<div id="stats">Loading…</div>
+
+<div class="bar-container">
+    <div class="bar-fill" id="bar"></div>
+</div>
+
+<div id="goalText">Goal: 250 members</div>
 
 <script>
-fetch("https://api.chess.com/pub/club/shadow-chess-hub")
-  .then(r => r.json())
-  .then(data => {
-      const members = data.members_count;
-      document.getElementById("stats").innerHTML =
-          `🌑 Members: ${members} 🌑`;
-  })
-  .catch(() => {
-      document.getElementById("stats").innerHTML =
-          "Error loading data";
-  });
+async function loadStats() {
+    const club = "shadow-chess-hub";
+    const goal = 250;
+
+    try {
+        // Fetch club info
+        const clubData = await fetch(`https://api.chess.com/pub/club/${club}`).then(r => r.json());
+        const totalMembers = clubData.members_count;
+
+        // Today's new members
+        const today = new Date().toISOString().split("T")[0];
+        let newToday = 0;
+
+        if (clubData.joined) {
+            clubData.joined.forEach(member => {
+                if (member.joined && member.joined.startsWith(today)) {
+                    newToday++;
+                }
+            });
+        }
+
+        // Online members
+        const onlineData = await fetch(`https://api.chess.com/pub/club/${club}/members`).then(r => r.json());
+        let onlineCount = onlineData.online ? onlineData.online.length : 0;
+
+        // Update text
+        document.getElementById("stats").innerHTML =
+            `🌑 Members: ${totalMembers} | +${newToday} today | ${onlineCount} online 🌑`;
+
+        // Progress bar
+        let percent = Math.min((totalMembers / goal) * 100, 100);
+        document.getElementById("bar").style.width = percent + "%";
+
+        // Update goal text
+        document.getElementById("goalText").innerHTML =
+            `${totalMembers} / ${goal} members`;
+
+    } catch (err) {
+        document.getElementById("stats").innerHTML = "Error loading stats";
+    }
+}
+
+loadStats();
+setInterval(loadStats, 60000); // update every 60 seconds
 </script>
 
 </body>
 </html>
-
