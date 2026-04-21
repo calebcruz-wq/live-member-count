@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body {
+    background: #12001f;
+    color: #d7a6ff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+}
+</style>
+</head>
+<body>
+
+<div id="stats">Loading...</div>
+
+<script>
+fetch("https://api.chess.com/pub/club/shadow-chess-hub")
+  .then(r => r.json())
+  .then(data => {
+      const members = data.members_count;
+      document.getElementById("stats").innerHTML =
+          `🌑 Members: ${members} 🌑`;
+  })
+  .catch(() => {
+      document.getElementById("stats").innerHTML =
+          "Error loading data";
+  });
+</script>
+
+</body>
+</html>
 
